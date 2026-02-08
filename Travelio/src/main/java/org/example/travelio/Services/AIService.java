@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -101,11 +103,49 @@ public class AIService {
             Matcher matcher = Pattern.compile("\\{.*\\}", Pattern.DOTALL).matcher(aiText.trim());
             String cleanedJson = matcher.find() ? matcher.group() : aiText;
 
-            return new ObjectMapper().readValue(cleanedJson, Map.class);
+            Map<String, Object> plan = new ObjectMapper().readValue(cleanedJson, Map.class);
+            enrichPlanWithExploreUrls(plan);
+            return plan;
 
         } catch (Exception e) {
             System.err.println("Xəta baş verdi: " + e.getMessage());
             throw new RuntimeException("Could not generate trip plan. Please try again.");
         }
     }
+
+    public void enrichPlanWithExploreUrls(Map<String, Object> plan) {
+        Object daysObj = plan.get("days");
+        if (!(daysObj instanceof List<?> days)) return;
+
+        for (Object dayObj : days) {
+            if (!(dayObj instanceof Map<?, ?> dayMapRaw)) continue;
+            Map<String, Object> day = (Map<String, Object>) dayMapRaw;
+
+            String city = day.get("city") != null ? day.get("city").toString() : "";
+
+            Object activitiesObj = day.get("activities");
+            if (!(activitiesObj instanceof List<?> activities)) continue;
+
+            for (Object actObj : activities) {
+                if (!(actObj instanceof Map<?, ?> actMapRaw)) continue;
+                Map<String, Object> activity = (Map<String, Object>) actMapRaw;
+
+                String placeName = activity.get("place_name") != null
+                        ? activity.get("place_name").toString().trim()
+                        : "";
+
+                activity.put("city_name", city);
+
+                if (placeName.isEmpty()) {
+                    throw new IllegalArgumentException("place_name is missing for an activity");
+                }
+
+                String query = (placeName + " " + city + " Azerbaijan images").trim();
+                String encodedQuery = URLEncoder.encode(query, StandardCharsets.UTF_8);
+                activity.put("explore_url", "https://www.google.com/search?tbm=isch&q=" + encodedQuery);
+            }
+        }
+    }
+
+
 }
