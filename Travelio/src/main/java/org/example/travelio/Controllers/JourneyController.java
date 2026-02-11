@@ -9,10 +9,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.example.travelio.DTO.CustomErrorMessage;
-import org.example.travelio.DTO.Request.Step1Request;
-import org.example.travelio.DTO.Request.Step2Request;
-import org.example.travelio.DTO.Request.Step3Request;
-import org.example.travelio.DTO.Request.Step4Request;
+import org.example.travelio.DTO.Request.*;
 import org.example.travelio.DTO.Response.JourneyResponse;
 import org.example.travelio.Exceptions.InvalidStepException;
 import org.example.travelio.Exceptions.JourneyAlreadyCompletedException;
@@ -129,6 +126,56 @@ public class JourneyController {
                     .body(CustomErrorMessage.notFound("Journey", e.getJourneyId()));
         }
     }
+
+    @Operation(
+            summary = "Request a tour guide",
+            description = "Submits a guide request for the given journey"
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200",description = "Request accepted",content = @Content(mediaType = "text/plain",schema = @Schema(example = "Request accepted"))),
+            @ApiResponse(responseCode = "400",content = @Content(mediaType = "application/json",schema = @Schema(implementation = CustomErrorMessage.class))),
+            @ApiResponse(responseCode = "404",description = "Journey not found",content = @Content(mediaType = "application/json",schema = @Schema(implementation = CustomErrorMessage.class))),
+            @ApiResponse(responseCode = "500",description = "Internal server error",content = @Content(mediaType = "application/json",schema = @Schema(implementation = CustomErrorMessage.class)))
+    })
+
+    @PostMapping("/journeys/guide")
+    public ResponseEntity<?> guideRequest(@Valid @RequestBody JourneyRequest request) {
+        try {
+            journeyService.handleGuideRequest(request);
+            return ResponseEntity.ok("Request accepted");
+        } catch (JourneyNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(CustomErrorMessage.notFound("Journey", e.getJourneyId()));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(CustomErrorMessage.badRequest(e.getMessage()));
+        }
+    }
+
+
+
+    @Operation(
+            summary = "Request airport pickup",
+            description = "Submits an airport pickup request for the given journey"
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200",description = "Airport pickup request accepted",content = @Content(schema = @Schema(example = "Request accepted"))),
+            @ApiResponse(responseCode = "400",description = "Validation or business error",content = @Content(schema = @Schema(implementation = CustomErrorMessage.class)))
+    })
+    @PostMapping("/journeys/airport-pickup")
+    public ResponseEntity<?> airportPickupRequest(@Valid @RequestBody JourneyRequest request) {
+        try {
+            journeyService.handleAirportPickupRequest(request);
+            return ResponseEntity.ok("Request accepted");
+        } catch (JourneyNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(CustomErrorMessage.notFound("Journey", e.getJourneyId()));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(CustomErrorMessage.badRequest(e.getMessage()));
+        }
+    }
+
 
     // ============ Helper Method for Exception Handling ============
 

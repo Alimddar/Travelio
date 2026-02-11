@@ -1,5 +1,9 @@
 package org.example.travelio.Controllers;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.example.travelio.DTO.Request.AIRequest;
 import org.example.travelio.DTO.Response.JourneyResponse;
 import org.example.travelio.Services.AIService;
@@ -12,6 +16,7 @@ import java.util.Map;
 @CrossOrigin(origins = "http://localhost:5173")
 @RestController
 @RequestMapping("/api/ai")
+@Tag(name = "AI", description = "AI powered travel planning APIs")
 public class AIController {
 
     private final AIService aiService;
@@ -22,6 +27,10 @@ public class AIController {
         this.journeyService = journeyService;
     }
 
+    @Operation(summary = "Generate travel plan from AI",description = "Creates a personalized travel plan based on journey preferences")
+    @ApiResponse(responseCode = "200", description = "Successfully generated plan",content = @Content(mediaType = "application/json"))
+    @ApiResponse(responseCode = "400", description = "Bad request - Invalid input parameters")
+    @ApiResponse(responseCode = "500", description = "Internal server error - Could not generate plan")
     @PostMapping("/get-plan")
     public ResponseEntity<?> getPlanFromAI(@RequestBody JourneyResponse journey) {
         try {
