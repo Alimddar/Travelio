@@ -1,18 +1,18 @@
 package org.example.travelio.Services;
 
-import org.example.travelio.DTO.Request.Step1Request;
-import org.example.travelio.DTO.Request.Step2Request;
-import org.example.travelio.DTO.Request.Step3Request;
-import org.example.travelio.DTO.Request.Step4Request;
+import org.example.travelio.DTO.Request.*;
 import org.example.travelio.DTO.Response.JourneyResponse;
 import org.example.travelio.Entities.Journey;
 import org.example.travelio.Enums.JourneyStatus;
+import org.example.travelio.Enums.RequestStatus;
+import org.example.travelio.Enums.RequestType;
 import org.example.travelio.Enums.TravelWith;
 import org.example.travelio.Exceptions.InvalidStepException;
 import org.example.travelio.Exceptions.JourneyAlreadyCompletedException;
 import org.example.travelio.Exceptions.JourneyNotFoundException;
 import org.example.travelio.Repositories.JourneyRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
@@ -126,7 +126,35 @@ public class JourneyService {
         return JourneyResponse.fromEntity(journey);
     }
 
+    @Transactional
+    public void handleGuideRequest(JourneyRequest request) {
+        Journey journey = getJourneyOrThrow(request.getJourneyId());
+        updateJourney(journey, request, RequestType.GUIDE);
+    }
+
+    @Transactional
+    public void handleAirportPickupRequest(JourneyRequest request) {
+        Journey journey = getJourneyOrThrow(request.getJourneyId());
+        updateJourney(journey, request, RequestType.AIRPORT_PICKUP);
+    }
+
     // ============ Helper Methods ============
+
+    private void updateJourney(Journey journey, JourneyRequest request, RequestType requestType) {
+        journey.setRequestType(requestType);
+        journey.setUserEmail(request.getUserEmail());
+        journey.setUserWhatsapp(request.getUserWhatsapp());
+        journey.setRequestStatus(RequestStatus.REQUESTED);
+        journey.setUpdatedAt(LocalDateTime.now());
+
+        if (requestType == RequestType.GUIDE) {
+            journey.setSelectedGuideId(request.getSelectedGuideId());
+        } else {
+            journey.setSelectedGuideId(null);
+        }
+
+        journeyRepository.save(journey);
+    }
 
     private Journey getJourneyOrThrow(Long id) {
         return journeyRepository.findById(id)

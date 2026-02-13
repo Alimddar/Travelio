@@ -1,10 +1,7 @@
 package org.example.travelio.Entities;
 
 import jakarta.persistence.*;
-import org.example.travelio.Enums.BudgetType;
-import org.example.travelio.Enums.JourneyStatus;
-import org.example.travelio.Enums.TravelStyle;
-import org.example.travelio.Enums.TravelWith;
+import org.example.travelio.Enums.*;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -67,7 +64,24 @@ public class Journey {
     @Column(name = "trip_days")
     private Long tripDays;
 
-    // Constructors
+    @Enumerated(EnumType.STRING)
+    @Column(name = "request_type")
+    private RequestType requestType;
+
+    @Column(name = "user_email")
+    private String userEmail;
+
+    @Column(name = "user_whatsapp")
+    private String userWhatsapp;
+
+    @Column(name = "selected_guide_id")
+    private Long selectedGuideId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "request_status")
+    private RequestStatus requestStatus;
+
+     // Constructors
     public Journey() {
         this.createdAt = LocalDateTime.now();
     }
@@ -167,6 +181,46 @@ public class Journey {
 
     public void setTripDays(Long tripDays) {
         this.tripDays = tripDays;
+    }
+
+    public Long getSelectedGuideId() {
+        return selectedGuideId;
+    }
+
+    public void setSelectedGuideId(Long selectedGuideId) {
+        this.selectedGuideId = selectedGuideId;
+    }
+
+    public RequestStatus getRequestStatus() {
+        return requestStatus;
+    }
+
+    public void setRequestStatus(RequestStatus requestStatus) {
+        this.requestStatus = requestStatus;
+    }
+
+    public RequestType getRequestType() {
+        return requestType;
+    }
+
+    public void setRequestType(RequestType requestType) {
+        this.requestType = requestType;
+    }
+
+    public String getUserEmail() {
+        return userEmail;
+    }
+
+    public void setUserEmail(String userEmail) {
+        this.userEmail = userEmail;
+    }
+
+    public String getUserWhatsapp() {
+        return userWhatsapp;
+    }
+
+    public void setUserWhatsapp(String userWhatsapp) {
+        this.userWhatsapp = userWhatsapp;
     }
 
     // Helper methods
