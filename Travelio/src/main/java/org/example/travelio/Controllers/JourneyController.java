@@ -176,7 +176,6 @@ public class JourneyController {
         }
     }
 
-
     // ============ Helper Method for Exception Handling ============
 
     @FunctionalInterface

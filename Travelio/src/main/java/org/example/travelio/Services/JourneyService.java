@@ -102,7 +102,7 @@ public class JourneyService {
 
     /**
      * Step 4: Trip Details (budget_type, trip_days)
-     * Marks journey as COMPLETED
+     * Marks a journey as COMPLETED
      */
     public JourneyResponse completeStep4(Step4Request request) {
         Journey journey = getJourneyOrThrow(request.getJourneyId());
