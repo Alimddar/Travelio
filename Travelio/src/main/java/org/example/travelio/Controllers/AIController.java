@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
-@CrossOrigin(origins = {"http://localhost:5173", "https://travel-a3qc8z9tp-tunars-projects-e1489b74.vercel.app"})
+@CrossOrigin(origins = {"http://localhost:5173", "https://travel-a3qc8z9tp-tunars-projects-e1489b74.vercel.app", "https://travel-chi-jade.vercel.app"})
 @RestController
 @RequestMapping("/api/ai")
 @Tag(name = "AI", description = "AI powered travel planning APIs")

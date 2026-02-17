@@ -8,7 +8,7 @@ import org.example.travelio.Services.PdfService;
 
 @RestController
 @RequestMapping("/api/mail")
-@CrossOrigin(origins = {"http://localhost:5173", "https://travel-a3qc8z9tp-tunars-projects-e1489b74.vercel.app"})
+@CrossOrigin(origins = {"http://localhost:5173", "https://travel-a3qc8z9tp-tunars-projects-e1489b74.vercel.app", "https://travel-chi-jade.vercel.app"})
 public class EmailController {
 
     private final EmailService emailService;
