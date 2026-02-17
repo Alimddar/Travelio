@@ -1,0 +1,10 @@
+.git
+.idea
+**/.DS_Store
+
+TravelMVP
+frontend
+docker
+
+Travelio/build
+Travelio/.gradle
