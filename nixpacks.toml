@@ -1,0 +1,8 @@
+[phases.setup]
+nixPkgs = ["jdk21", "gradle"]
+
+[phases.build]
+cmds = ["cd Travelio && ./gradlew clean bootJar -x test --no-daemon"]
+
+[start]
+cmd = "cd Travelio && java -Dserver.port=$PORT -jar build/libs/Travelio-0.0.1-SNAPSHOT.jar"
