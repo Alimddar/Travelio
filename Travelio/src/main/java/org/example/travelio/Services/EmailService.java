@@ -2,6 +2,7 @@ package org.example.travelio.Services;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
+import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -30,8 +31,17 @@ public class EmailService {
             helper.addAttachment(fileName, pdfResource);
 
             mailSender.send(message);
-        } catch (MessagingException e) {
-            throw new RuntimeException("Failed to send email", e);
+        } catch (MessagingException | MailException e) {
+            String causeMessage = extractRootCauseMessage(e);
+            throw new RuntimeException("Failed to send email via SMTP: " + causeMessage, e);
         }
+    }
+
+    private String extractRootCauseMessage(Throwable throwable) {
+        Throwable current = throwable;
+        while (current.getCause() != null) {
+            current = current.getCause();
+        }
+        return current.getMessage() != null ? current.getMessage() : current.getClass().getSimpleName();
     }
 }

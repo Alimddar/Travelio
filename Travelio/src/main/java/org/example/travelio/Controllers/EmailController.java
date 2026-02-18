@@ -21,19 +21,24 @@ public class EmailController {
 
     @PostMapping("/send-plan")
     public ResponseEntity<String> sendItinerary(@RequestBody ItineraryDTO request) {
-        byte[] pdfFile = pdfService.generateItineraryPdf(request.getPlan());
+        try {
+            byte[] pdfFile = pdfService.generateItineraryPdf(request.getPlan());
 
-        String subject = "Your Custom Travel Itinerary for Azerbaijan";
-        String body = "Hello! \n\nPlease find attached the travel plan we generated for you.\n\nBest Regards,\nTravelio Team";
+            String subject = "Your Custom Travel Itinerary for Azerbaijan";
+            String body = "Hello! \n\nPlease find attached the travel plan we generated for you.\n\nBest Regards,\nTravelio Team";
 
-        emailService.sendEmailWithAttachment(
-                request.getEmail(),
-                subject,
-                body,
-                pdfFile,
-                "Travelio_Itinerary.pdf"
-        );
+            emailService.sendEmailWithAttachment(
+                    request.getEmail(),
+                    subject,
+                    body,
+                    pdfFile,
+                    "Travelio_Itinerary.pdf"
+            );
 
-        return ResponseEntity.ok("Itinerary sent successfully to " + request.getEmail());
+            return ResponseEntity.ok("Itinerary sent successfully to " + request.getEmail());
+        } catch (RuntimeException e) {
+            String message = e.getMessage() != null ? e.getMessage() : "Email sending failed.";
+            return ResponseEntity.internalServerError().body(message);
+        }
     }
 }
