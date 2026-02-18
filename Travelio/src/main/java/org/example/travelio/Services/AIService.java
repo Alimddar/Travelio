@@ -1,6 +1,7 @@
 package org.example.travelio.Services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.annotation.PostConstruct;
 import org.example.travelio.DTO.Request.AIRequest;
 import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,6 +21,15 @@ public class AIService {
 
     @Value("${gemini.api.endpoint}")
     private String geminiUrl;
+
+    @PostConstruct
+    void validateGeminiConfiguration() {
+        if (geminiApiKey == null || geminiApiKey.isBlank()) {
+            throw new IllegalStateException(
+                    "Missing GEMINI_API_KEY. Set it in environment variables or in .env before starting the application."
+            );
+        }
+    }
 
     public Map generatePlan(AIRequest dto) {
         if (dto.getTravelWith() == null || dto.getBudgetType() == null ||
