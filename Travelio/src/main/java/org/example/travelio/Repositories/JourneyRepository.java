@@ -6,8 +6,10 @@ import org.example.travelio.Enums.JourneyStatus;
 import org.example.travelio.Enums.TravelWith;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.Instant;
 import java.util.List;
 
 @Repository
@@ -31,4 +33,14 @@ public interface JourneyRepository extends CrudRepository<Journey, Long> {
     List<Object[]> countByInterests();
 
     long countByTravelWith(TravelWith travelWith);
+
+    @Query("""
+        select cast(j.createdAt as date) as d, count(j.id) as c
+        from Journey j
+        where j.createdAt >= :from and j.createdAt < :to
+        group by cast(j.createdAt as date)
+    """)
+    List<Object[]> countRegistrationsByDay(@Param("from") Instant from, @Param("to") Instant to);
+
+
 }
