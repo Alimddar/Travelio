@@ -1,13 +1,12 @@
 package org.example.travelio.Controllers;
 
 import jakarta.validation.Valid;
-import org.example.travelio.DTO.*;
+import org.example.travelio.DTO.Request.SystemParameterRequest;
 import org.example.travelio.DTO.Response.*;
 import org.example.travelio.Services.AdminService;
-import org.example.travelio.Services.SystemParameterService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.ZoneId;
 import java.util.List;
 
 @RestController
@@ -15,11 +14,9 @@ import java.util.List;
 public class AdminController {
 
 
-    private final SystemParameterService systemParameterService;
     private final AdminService adminService;
 
-    public AdminController(SystemParameterService systemParameterService, AdminService adminService) {
-        this.systemParameterService = systemParameterService;
+    public AdminController(AdminService adminService) {
         this.adminService = adminService;
     }
 
@@ -49,13 +46,14 @@ public class AdminController {
     }
 
     @GetMapping("/dashboard/parameters")
-    public SystemParameterDTO getSettings() {
-        return systemParameterService.getSystemParameters();
+    public SystemParameterResponse getSettings() {
+        return adminService.getSystemParameters();
     }
 
     @PutMapping("/dashboard/parameters")
-    public SystemParameterDTO updateSettings(@RequestBody @Valid SystemParameterDTO dto) {
-        return systemParameterService.updateSystemParameters(dto);
+    public ResponseEntity<?> updateSettings(@RequestBody @Valid SystemParameterRequest dto) {
+        adminService.updateSystemParameters(dto);
+        return ResponseEntity.ok().build();
     }
 
     // Ticket 1

@@ -1,13 +1,13 @@
-package org.example.travelio.DTO;
+package org.example.travelio.DTO.Response;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
-public class SystemParameterDTO {
-    private Long id;
+public class SystemParameterResponse {
     private String siteName;
     private String siteUrl;
     private String contactEmail;

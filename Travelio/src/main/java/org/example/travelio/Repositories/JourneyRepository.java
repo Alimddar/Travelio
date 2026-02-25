@@ -9,7 +9,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
@@ -40,7 +40,32 @@ public interface JourneyRepository extends CrudRepository<Journey, Long> {
         where j.createdAt >= :from and j.createdAt < :to
         group by cast(j.createdAt as date)
     """)
-    List<Object[]> countRegistrationsByDay(@Param("from") Instant from, @Param("to") Instant to);
+    List<Object[]> countRegistrationsByDay(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
 
+    @Query("""
+        select cast(j.createdAt as date) as d, count(j.id) as c
+        from Journey j
+        where j.createdAt >= :from and j.createdAt < :to and j.status = 'COMPLETED'
+        group by cast(j.createdAt as date)
+    """)
+    List<Object[]> countOnboardedByDay(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
 
+    @Query("""
+        select hour(j.createdAt) as h, count(distinct j.id) as c
+        from Journey j
+        where j.createdAt >= :from and j.createdAt < :to
+        group by hour(j.createdAt)
+    """)
+    List<Object[]> countDistinctUsersByHour(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
+
+    @Query("""
+        select cast(j.createdAt as date) as d, count(j.id) as c
+        from Journey j
+        where j.createdAt >= :from and j.createdAt < :to
+        group by cast(j.createdAt as date)
+    """)
+    List<Object[]> countUsersByDay(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
+
+    @Query("select j.createdAt from Journey j where j.createdAt >= :from and j.createdAt < :to")
+    List<LocalDateTime> findCreatedAtBetween(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
 }

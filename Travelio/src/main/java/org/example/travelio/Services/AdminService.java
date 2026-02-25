@@ -1,10 +1,13 @@
 package org.example.travelio.Services;
 
+import org.example.travelio.DTO.Request.SystemParameterRequest;
 import org.example.travelio.DTO.Response.*;
+import org.example.travelio.Entities.SystemParameter;
 import org.example.travelio.Enums.BudgetType;
 import org.example.travelio.Enums.JourneyStatus;
 import org.example.travelio.Enums.TravelWith;
 import org.example.travelio.Repositories.JourneyRepository;
+import org.example.travelio.Repositories.SystemParameterRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.*;
@@ -16,9 +19,11 @@ public class AdminService {
     private static ZoneId zoneId = ZoneId.of("Asia/Baku");
 
     private final JourneyRepository journeyRepository;
+    private final SystemParameterRepository systemParameterRepository;
 
-    public AdminService(JourneyRepository journeyRepository) {
+    public AdminService(JourneyRepository journeyRepository, SystemParameterRepository systemParameterRepository) {
         this.journeyRepository = journeyRepository;
+        this.systemParameterRepository = systemParameterRepository;
     }
 
     public DashboardStatsResponse getDashboardStats() {
@@ -95,8 +100,8 @@ public class AdminService {
         LocalDate today = LocalDate.now(zoneId);
         LocalDate start = today.minusDays(29);
 
-        Instant from = start.atStartOfDay(zoneId).toInstant();
-        Instant to = today.plusDays(1).atStartOfDay(zoneId).toInstant();
+        LocalDateTime from = start.atStartOfDay();
+        LocalDateTime to = today.plusDays(1).atStartOfDay();
 
         Map<LocalDate, Long> regMap = toLocalDateCountMap(journeyRepository.countRegistrationsByDay(from, to));
         Map<LocalDate, Long> onboardMap = toLocalDateCountMap(journeyRepository.countOnboardedByDay(from, to));
@@ -117,8 +122,8 @@ public class AdminService {
         YearMonth prev = current.minusMonths(1);
 
         List<WeeklyCompareResponse> out = new ArrayList<>();
-        long[] curWeeks = countByWeekOfMonth(current, zoneId);
-        long[] prevWeeks = countByWeekOfMonth(prev, zoneId);
+        long[] curWeeks = countByWeekOfMonth(current);
+        long[] prevWeeks = countByWeekOfMonth(prev);
 
         for (int w = 1; w <= 4; w++) {
             out.add(new WeeklyCompareResponse(w, prevWeeks[w], curWeeks[w]));
@@ -128,8 +133,8 @@ public class AdminService {
 
     public List<HourlyActivityResponse> getHourlyActivityLast30Days() {
         LocalDate today = LocalDate.now(zoneId);
-        Instant from = today.minusDays(29).atStartOfDay(zoneId).toInstant();
-        Instant to = today.plusDays(1).atStartOfDay(zoneId).toInstant();
+        LocalDateTime from = today.minusDays(29).atStartOfDay();
+        LocalDateTime to = today.plusDays(1).atStartOfDay();
 
         List<Object[]> rows = journeyRepository.countDistinctUsersByHour(from, to);
         Map<Integer, Long> map = new HashMap<>();
@@ -155,8 +160,8 @@ public class AdminService {
         LocalDate fromDate = start.atDay(1);
         LocalDate toDateExclusive = now.plusMonths(1).atDay(1);
 
-        Instant from = fromDate.atStartOfDay(zoneId).toInstant();
-        Instant to = toDateExclusive.atStartOfDay(zoneId).toInstant();
+        LocalDateTime from = fromDate.atStartOfDay();
+        LocalDateTime to = toDateExclusive.atStartOfDay();
 
         // günlərə count çəkib sonra month-a yığırıq (sadə və DB-dən asılılığı az)
         List<Object[]> daily = journeyRepository.countUsersByDay(from, to);
@@ -189,20 +194,60 @@ public class AdminService {
         return new PeakHourResponse(bestHour, Math.max(best, 0));
     }
 
+    public SystemParameterResponse getSystemParameters() {
+        SystemParameter params = systemParameterRepository.findFirstByOrderByIdDesc();
+        if (params == null) {
+            // Return default values if no parameters found
+            return new SystemParameterResponse(
+                    "Travelio",
+                    "https://travelio.com",
+                    "contact@travelio.com",
+                    "+994500000000",
+                    false,
+                    false,
+                    365
+            );
+        }
+        return new SystemParameterResponse(
+                params.getSiteName(),
+                params.getSiteUrl(),
+                params.getContactEmail(),
+                params.getWhatsappNumber(),
+                params.getTechnicalMode(),
+                params.getDebugMode(),
+                params.getDataRetentionDays()
+        );
+    }
 
-    private long[] countByWeekOfMonth(YearMonth ym, ZoneId zoneId) {
+    public void updateSystemParameters(SystemParameterRequest request) {
+        SystemParameter params = systemParameterRepository.findFirstByOrderByIdDesc();
+        if (params == null) {
+            params = new SystemParameter();
+        }
+        params.setSiteName(request.getSiteName());
+        params.setSiteUrl(request.getSiteUrl());
+        params.setContactEmail(request.getContactEmail());
+        params.setWhatsappNumber(request.getWhatsappNumber());
+        params.setTechnicalMode(request.getTechnicalMode());
+        params.setDebugMode(request.getDebugMode());
+        params.setDataRetentionDays(request.getDataRetentionDays());
+        
+        systemParameterRepository.save(params);
+    }
+
+    private long[] countByWeekOfMonth(YearMonth ym) {
         LocalDate start = ym.atDay(1);
         LocalDate endExclusive = ym.plusMonths(1).atDay(1);
 
-        Instant from = start.atStartOfDay(zoneId).toInstant();
-        Instant to = endExclusive.atStartOfDay(zoneId).toInstant();
+        LocalDateTime from = start.atStartOfDay();
+        LocalDateTime to = endExclusive.atStartOfDay();
 
         // daha rahat: createdAt-ları çəkib həftəyə bölürük
-        List<Instant> created = journeyRepository.findCreatedAtBetween(from, to);
+        List<LocalDateTime> created = journeyRepository.findCreatedAtBetween(from, to);
 
         long[] weeks = new long[5]; // index 1..4
-        for (Instant t : created) {
-            LocalDate d = LocalDateTime.ofInstant(t, zoneId).toLocalDate();
+        for (LocalDateTime t : created) {
+            LocalDate d = t.toLocalDate();
             int week = ((d.getDayOfMonth() - 1) / 7) + 1; // 1..5 ola bilər
             if (week > 4) week = 4; // Acceptance: 4 həftə
             weeks[week]++;
