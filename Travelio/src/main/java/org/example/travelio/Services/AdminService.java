@@ -10,13 +10,14 @@ import org.example.travelio.Repositories.JourneyRepository;
 import org.example.travelio.Repositories.SystemParameterRepository;
 import org.springframework.stereotype.Service;
 
+import jakarta.transaction.Transactional;
+
 import java.time.*;
 import java.util.*;
 
 @Service
 public class AdminService {
 
-    private static ZoneId zoneId = ZoneId.of("Asia/Baku");
 
     private final JourneyRepository journeyRepository;
     private final SystemParameterRepository systemParameterRepository;
@@ -96,8 +97,9 @@ public class AdminService {
                 .toList();
     }
 
+
     public List<DailyTrendResponse> getDaylyTrend() {
-        LocalDate today = LocalDate.now(zoneId);
+        LocalDate today = LocalDate.now();
         LocalDate start = today.minusDays(29);
 
         LocalDateTime from = start.atStartOfDay();
@@ -118,7 +120,7 @@ public class AdminService {
     }
 
     public List<WeeklyCompareResponse> getWeeklyCompare() {
-        YearMonth current = YearMonth.now(zoneId);
+        YearMonth current = YearMonth.now();
         YearMonth prev = current.minusMonths(1);
 
         List<WeeklyCompareResponse> out = new ArrayList<>();
@@ -132,7 +134,7 @@ public class AdminService {
     }
 
     public List<HourlyActivityResponse> getHourlyActivityLast30Days() {
-        LocalDate today = LocalDate.now(zoneId);
+        LocalDate today = LocalDate.now();
         LocalDateTime from = today.minusDays(29).atStartOfDay();
         LocalDateTime to = today.plusDays(1).atStartOfDay();
 
@@ -153,17 +155,15 @@ public class AdminService {
 
 
     public List<MonthlyTrendResponse> getLast12MonthsTrend() {
-        YearMonth now = YearMonth.now(zoneId);
+        YearMonth now = YearMonth.now();
         YearMonth start = now.minusMonths(11);
 
-        // 12 ay intervalı
         LocalDate fromDate = start.atDay(1);
         LocalDate toDateExclusive = now.plusMonths(1).atDay(1);
 
         LocalDateTime from = fromDate.atStartOfDay();
         LocalDateTime to = toDateExclusive.atStartOfDay();
 
-        // günlərə count çəkib sonra month-a yığırıq (sadə və DB-dən asılılığı az)
         List<Object[]> daily = journeyRepository.countUsersByDay(from, to);
         Map<YearMonth, Long> monthMap = new HashMap<>();
 
@@ -197,7 +197,6 @@ public class AdminService {
     public SystemParameterResponse getSystemParameters() {
         SystemParameter params = systemParameterRepository.findFirstByOrderByIdDesc();
         if (params == null) {
-            // Return default values if no parameters found
             return new SystemParameterResponse(
                     "Travelio",
                     "https://travelio.com",
@@ -219,6 +218,7 @@ public class AdminService {
         );
     }
 
+    @Transactional
     public void updateSystemParameters(SystemParameterRequest request) {
         SystemParameter params = systemParameterRepository.findFirstByOrderByIdDesc();
         if (params == null) {
@@ -242,14 +242,13 @@ public class AdminService {
         LocalDateTime from = start.atStartOfDay();
         LocalDateTime to = endExclusive.atStartOfDay();
 
-        // daha rahat: createdAt-ları çəkib həftəyə bölürük
         List<LocalDateTime> created = journeyRepository.findCreatedAtBetween(from, to);
 
-        long[] weeks = new long[5]; // index 1..4
+        long[] weeks = new long[5];
         for (LocalDateTime t : created) {
             LocalDate d = t.toLocalDate();
-            int week = ((d.getDayOfMonth() - 1) / 7) + 1; // 1..5 ola bilər
-            if (week > 4) week = 4; // Acceptance: 4 həftə
+            int week = ((d.getDayOfMonth() - 1) / 7) + 1;
+            if (week > 4) week = 4;
             weeks[week]++;
         }
         return weeks;

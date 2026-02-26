@@ -34,36 +34,21 @@ public interface JourneyRepository extends CrudRepository<Journey, Long> {
 
     long countByTravelWith(TravelWith travelWith);
 
-    @Query("""
-        select cast(j.createdAt as date) as d, count(j.id) as c
-        from Journey j
-        where j.createdAt >= :from and j.createdAt < :to
-        group by cast(j.createdAt as date)
-    """)
+    @Query("SELECT CAST(j.createdAt AS DATE) AS d, COUNT(j.id) AS c " +
+            "FROM Journey j WHERE j.createdAt >= :from AND j.createdAt < :to GROUP BY CAST(j.createdAt AS DATE)")
     List<Object[]> countRegistrationsByDay(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
 
-    @Query("""
-        select cast(j.createdAt as date) as d, count(j.id) as c
-        from Journey j
-        where j.createdAt >= :from and j.createdAt < :to and j.status = 'COMPLETED'
-        group by cast(j.createdAt as date)
-    """)
+    @Query("SELECT CAST(j.createdAt AS DATE) AS d, COUNT(j.id) AS c " +
+            "FROM Journey j WHERE j.createdAt >= :from AND j.createdAt < :to AND j.status = 'COMPLETED' GROUP BY CAST(j.createdAt AS DATE)")
     List<Object[]> countOnboardedByDay(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
 
-    @Query("""
-        select hour(j.createdAt) as h, count(distinct j.id) as c
-        from Journey j
-        where j.createdAt >= :from and j.createdAt < :to
-        group by hour(j.createdAt)
-    """)
+    @Query("SELECT HOUR(j.createdAt) AS h, COUNT(DISTINCT j.id) AS c " +
+            "FROM Journey j WHERE j.createdAt >= :from AND j.createdAt < :to GROUP BY HOUR(j.createdAt)")
     List<Object[]> countDistinctUsersByHour(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
 
-    @Query("""
-        select cast(j.createdAt as date) as d, count(j.id) as c
-        from Journey j
-        where j.createdAt >= :from and j.createdAt < :to
-        group by cast(j.createdAt as date)
-    """)
+
+    @Query("SELECT CAST(j.createdAt AS DATE) AS d, COUNT(j.id) AS c " +
+            "FROM Journey j WHERE j.createdAt >= :from AND j.createdAt < :to GROUP BY CAST(j.createdAt AS DATE)")
     List<Object[]> countUsersByDay(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
 
     @Query("select j.createdAt from Journey j where j.createdAt >= :from and j.createdAt < :to")

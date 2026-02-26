@@ -7,6 +7,7 @@ import org.example.travelio.Services.AdminService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
 import java.util.List;
 
 @RestController
@@ -53,34 +54,33 @@ public class AdminController {
     @PutMapping("/dashboard/parameters")
     public ResponseEntity<?> updateSettings(@RequestBody @Valid SystemParameterRequest dto) {
         adminService.updateSystemParameters(dto);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(Collections.singletonMap("message", "Parametrlər uğurla yeniləndi"));
     }
 
-    // Ticket 1
     @GetMapping("/trends/daily-30")
     public List<DailyTrendResponse> daily30() {
         return adminService.getDaylyTrend();
     }
 
-    // Ticket 2
+
     @GetMapping("/trends/weekly-compare")
     public List<WeeklyCompareResponse> weeklyCompare() {
         return adminService.getWeeklyCompare();
     }
 
-    // Ticket 3
+
     @GetMapping("/trends/hourly-activity")
     public List<HourlyActivityResponse> hourly() {
         return adminService.getHourlyActivityLast30Days();
     }
 
-    // Ticket 4
+
     @GetMapping("/trends/monthly-12")
     public List<MonthlyTrendResponse> monthly12() {
         return adminService.getLast12MonthsTrend();
     }
 
-    // Ticket 5
+
     @GetMapping("/trends/peak-hour")
     public PeakHourResponse peakHour() {
         return adminService.getPeakHourLast30Days();
