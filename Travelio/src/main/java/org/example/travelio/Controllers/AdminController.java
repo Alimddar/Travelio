@@ -1,20 +1,19 @@
 package org.example.travelio.Controllers;
 
-import org.example.travelio.DTO.Response.DashboardStatsResponse;
-import org.example.travelio.DTO.Response.InterestsStatsResponse;
-import org.example.travelio.DTO.Response.OnboardingFunnelResponse;
-import org.example.travelio.DTO.Response.TravelerTypesResponse;
-import org.example.travelio.DTO.Response.UserPreferencesResponse;
+import jakarta.validation.Valid;
+import org.example.travelio.DTO.Request.SystemParameterRequest;
+import org.example.travelio.DTO.Response.*;
 import org.example.travelio.Services.AdminService;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/admin")
 public class AdminController {
+
 
     private final AdminService adminService;
 
@@ -46,4 +45,46 @@ public class AdminController {
     public List<TravelerTypesResponse> getTravelerTypes() {
         return adminService.getTravelerTypes();
     }
+
+    @GetMapping("/dashboard/parameters")
+    public SystemParameterResponse getSettings() {
+        return adminService.getSystemParameters();
+    }
+
+    @PutMapping("/dashboard/parameters")
+    public ResponseEntity<?> updateSettings(@RequestBody @Valid SystemParameterRequest dto) {
+        adminService.updateSystemParameters(dto);
+        return ResponseEntity.ok(Collections.singletonMap("message", "Parametrlər uğurla yeniləndi"));
+    }
+
+    @GetMapping("/trends/daily-30")
+    public List<DailyTrendResponse> daily30() {
+        return adminService.getDaylyTrend();
+    }
+
+
+    @GetMapping("/trends/weekly-compare")
+    public List<WeeklyCompareResponse> weeklyCompare() {
+        return adminService.getWeeklyCompare();
+    }
+
+
+    @GetMapping("/trends/hourly-activity")
+    public List<HourlyActivityResponse> hourly() {
+        return adminService.getHourlyActivityLast30Days();
+    }
+
+
+    @GetMapping("/trends/monthly-12")
+    public List<MonthlyTrendResponse> monthly12() {
+        return adminService.getLast12MonthsTrend();
+    }
+
+
+    @GetMapping("/trends/peak-hour")
+    public PeakHourResponse peakHour() {
+        return adminService.getPeakHourLast30Days();
+    }
+
+
 }
