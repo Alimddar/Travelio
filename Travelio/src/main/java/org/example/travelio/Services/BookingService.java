@@ -133,7 +133,10 @@ public class BookingService {
         String imageUrl = photos.isEmpty() ? null : String.valueOf(photos.get(0));
 
         String hotelId = String.valueOf(property.getOrDefault("id", ""));
-        String hotelUrl = "https://www.booking.com/hotel/az/id-" + hotelId + ".html";
+//        String hotelUrl = "https://www.booking.com/hotel/az/id-" + hotelId + ".html";
+        String realUrl = (String) property.get("url");
+        String hotelUrl = (realUrl != null) ? realUrl + "?aid=" + aid : "https://www.booking.com/hotel/az/" + name.toLowerCase().replace(" ", "-") + ".html?aid=" + aid;
+
         if (aid != null && !aid.isBlank()) {
             hotelUrl = hotelUrl + "?aid=" + aid;
         }
