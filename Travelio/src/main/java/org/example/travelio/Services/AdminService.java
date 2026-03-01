@@ -5,6 +5,7 @@ import org.example.travelio.DTO.Response.*;
 import org.example.travelio.Entities.SystemParameter;
 import org.example.travelio.Enums.BudgetType;
 import org.example.travelio.Enums.JourneyStatus;
+import org.example.travelio.Enums.TravelStyle;
 import org.example.travelio.Enums.TravelWith;
 import org.example.travelio.Repositories.JourneyRepository;
 import org.example.travelio.Repositories.SystemParameterRepository;
@@ -96,7 +97,6 @@ public class AdminService {
                 })
                 .toList();
     }
-
 
     public List<DailyTrendResponse> getDaylyTrend() {
         LocalDate today = LocalDate.now();
@@ -233,6 +233,12 @@ public class AdminService {
         params.setDataRetentionDays(request.getDataRetentionDays());
         
         systemParameterRepository.save(params);
+    }
+
+    public ActivePassiveStatsResponse getActivePassiveStats() {
+        long activeUsers = journeyRepository.countByTravelStyle(TravelStyle.ACTIVE);
+        long passiveUsers = journeyRepository.countByTravelStyle(TravelStyle.PASSIVE);
+        return new ActivePassiveStatsResponse(activeUsers, passiveUsers);
     }
 
     private long[] countByWeekOfMonth(YearMonth ym) {

@@ -46,6 +46,11 @@ public class AdminController {
         return adminService.getTravelerTypes();
     }
 
+    @GetMapping("/dashboard/active-passive-stats")
+    public ActivePassiveStatsResponse getActivePassiveStats() {
+        return adminService.getActivePassiveStats();
+    }
+
     @GetMapping("/dashboard/parameters")
     public SystemParameterResponse getSettings() {
         return adminService.getSystemParameters();
@@ -85,6 +90,4 @@ public class AdminController {
     public PeakHourResponse peakHour() {
         return adminService.getPeakHourLast30Days();
     }
-
-
 }

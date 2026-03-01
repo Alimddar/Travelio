@@ -3,6 +3,7 @@ package org.example.travelio.Repositories;
 import org.example.travelio.Entities.Journey;
 import org.example.travelio.Enums.BudgetType;
 import org.example.travelio.Enums.JourneyStatus;
+import org.example.travelio.Enums.TravelStyle;
 import org.example.travelio.Enums.TravelWith;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
@@ -33,6 +34,7 @@ public interface JourneyRepository extends CrudRepository<Journey, Long> {
     List<Object[]> countByInterests();
 
     long countByTravelWith(TravelWith travelWith);
+    long countByTravelStyle(TravelStyle travelStyle);
 
     @Query("SELECT CAST(j.createdAt AS DATE) AS d, COUNT(j.id) AS c " +
             "FROM Journey j WHERE j.createdAt >= :from AND j.createdAt < :to GROUP BY CAST(j.createdAt AS DATE)")
