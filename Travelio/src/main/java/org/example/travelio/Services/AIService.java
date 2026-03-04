@@ -88,6 +88,8 @@ public class AIService {
     Currency: %s
 
     STRICT RULES:
+    - ABSOLUTE LOCATION CONSISTENCY: All activities in the "itinerary" must be strictly located within the city specified in the "city" field for that specific day.
+    - TRANSIT EXCLUSION: Do not include travel, transit, or return journeys to any other city within the activity descriptions. If a day is assigned to a specific city, every time slot (Morning, Afternoon, Evening) must feature locations and activities exclusive to that city only.
     - Do not limit the plan to only one city. If the trip is more than 3 days, suggest moving between regions.
     - The "trip_summary" must be exactly 2-3 sentences long.
     - DIVIDE EACH DAY into exactly three time slots: "Morning (09:00-12:00)", "Afternoon (13:00-18:00)", and "Evening (19:00+)".
