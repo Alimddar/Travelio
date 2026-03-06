@@ -1,11 +1,12 @@
 package org.example.travelio.Controllers;
 
-import lombok.RequiredArgsConstructor;
+import jakarta.validation.Valid;
 import org.example.travelio.DTO.AdminDashboardDto;
+import org.example.travelio.DTO.Request.SystemParameterRequest;
+import org.example.travelio.DTO.Response.*;
 import org.example.travelio.Entities.Journey;
 import org.example.travelio.Enums.JourneyStatus;
 import org.example.travelio.Repositories.JourneyRepository;
-import org.example.travelio.Repositories.UserAdminRepository;
 import org.example.travelio.Services.AdminService;
 import org.example.travelio.Services.BookingService;
 import org.springframework.data.domain.Page;
@@ -13,28 +14,30 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 @RestController
 @RequestMapping("/api/admin")
 @PreAuthorize("hasRole('ADMIN')")
-@RequiredArgsConstructor
 public class AdminController {
 
     private final AdminService adminService;
     private final JourneyRepository journeyRepository;
-    private final UserAdminRepository userAdminRepository;
     private final BookingService bookingService;
+
+    public AdminController(AdminService adminService, JourneyRepository journeyRepository, BookingService bookingService) {
+        this.adminService = adminService;
+        this.journeyRepository = journeyRepository;
+        this.bookingService = bookingService;
+    }
 
     @GetMapping("/stats")
     public ResponseEntity<AdminDashboardDto> getStats() {
-        return ResponseEntity.ok(adminService.getDashboardStats());
+        return ResponseEntity.ok(adminService.getLegacyDashboardStats());
     }
 
 
@@ -66,5 +69,74 @@ public class AdminController {
     public List<Map<String, String>> getTourists() {
         return adminService.getTouristContacts();
     }
-}
 
+    @GetMapping("/dashboard/stats")
+    public DashboardStatsResponse getDashboardStats() {
+        return adminService.getDashboardStats();
+    }
+
+    @GetMapping("/dashboard/user-preferences")
+    public UserPreferencesResponse getUserPreferences() {
+        return adminService.getUserPreferences();
+    }
+
+    @GetMapping("/dashboard/onboarding-funnel")
+    public OnboardingFunnelResponse getOnboardingFunnel() {
+        return adminService.getOnboardingFunnel();
+    }
+
+    @GetMapping("/dashboard/interests-stats")
+    public InterestsStatsResponse getInterestsStats() {
+        return adminService.getInterestsStats();
+    }
+
+    @GetMapping("/dashboard/traveler-types")
+    public List<TravelerTypesResponse> getTravelerTypes() {
+        return adminService.getTravelerTypes();
+    }
+
+    @GetMapping("/dashboard/active-passive-stats")
+    public ActivePassiveStatsResponse getActivePassiveStats() {
+        return adminService.getActivePassiveStats();
+    }
+
+    @GetMapping("/dashboard/parameters")
+    public SystemParameterResponse getSettings() {
+        return adminService.getSystemParameters();
+    }
+
+    @PutMapping("/dashboard/parameters")
+    public ResponseEntity<?> updateSettings(@RequestBody @Valid SystemParameterRequest dto) {
+        adminService.updateSystemParameters(dto);
+        return ResponseEntity.ok(Collections.singletonMap("message", "Parametrlər uğurla yeniləndi"));
+    }
+
+    @GetMapping("/trends/daily-30")
+    public List<DailyTrendResponse> daily30() {
+        return adminService.getDaylyTrend();
+    }
+
+
+    @GetMapping("/trends/weekly-compare")
+    public List<WeeklyCompareResponse> weeklyCompare() {
+        return adminService.getWeeklyCompare();
+    }
+
+
+    @GetMapping("/trends/hourly-activity")
+    public List<HourlyActivityResponse> hourly() {
+        return adminService.getHourlyActivityLast30Days();
+    }
+
+
+    @GetMapping("/trends/monthly-12")
+    public List<MonthlyTrendResponse> monthly12() {
+        return adminService.getLast12MonthsTrend();
+    }
+
+
+    @GetMapping("/trends/peak-hour")
+    public PeakHourResponse peakHour() {
+        return adminService.getPeakHourLast30Days();
+    }
+}

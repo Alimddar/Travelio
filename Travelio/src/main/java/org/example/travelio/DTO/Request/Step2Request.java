@@ -2,8 +2,12 @@ package org.example.travelio.DTO.Request;
 
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
+import lombok.Getter;
+import lombok.Setter;
 import org.example.travelio.Enums.TravelWith;
 
+@Setter
+@Getter
 public class Step2Request {
 
     @NotNull(message = "Journey ID is required")
@@ -26,38 +30,6 @@ public class Step2Request {
         this.journeyId = journeyId;
         this.travelWith = travelWith;
         this.adultsCount = adultsCount;
-        this.childrenCount = childrenCount;
-    }
-
-    public Long getJourneyId() {
-        return journeyId;
-    }
-
-    public void setJourneyId(Long journeyId) {
-        this.journeyId = journeyId;
-    }
-
-    public TravelWith getTravelWith() {
-        return travelWith;
-    }
-
-    public void setTravelWith(TravelWith travelWith) {
-        this.travelWith = travelWith;
-    }
-
-    public Long getAdultsCount() {
-        return adultsCount;
-    }
-
-    public void setAdultsCount(Long adultsCount) {
-        this.adultsCount = adultsCount;
-    }
-
-    public Long getChildrenCount() {
-        return childrenCount;
-    }
-
-    public void setChildrenCount(Long childrenCount) {
         this.childrenCount = childrenCount;
     }
 }
