@@ -81,6 +81,9 @@ public class Journey {
     @Column(name = "request_status")
     private RequestStatus requestStatus;
 
+    @Column(name = "total_price")
+    private Double totalPrice;
+
     public Journey() {
         this.createdAt = LocalDateTime.now();
     }

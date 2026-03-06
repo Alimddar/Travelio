@@ -1,7 +1,9 @@
 package org.example.travelio.Services;
 
+import org.example.travelio.DTO.AdminDashboardDto;
 import org.example.travelio.DTO.Request.SystemParameterRequest;
 import org.example.travelio.DTO.Response.*;
+import org.example.travelio.Entities.Journey;
 import org.example.travelio.Entities.SystemParameter;
 import org.example.travelio.Enums.BudgetType;
 import org.example.travelio.Enums.JourneyStatus;
@@ -9,12 +11,14 @@ import org.example.travelio.Enums.TravelStyle;
 import org.example.travelio.Enums.TravelWith;
 import org.example.travelio.Repositories.JourneyRepository;
 import org.example.travelio.Repositories.SystemParameterRepository;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import jakarta.transaction.Transactional;
 
 import java.time.*;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class AdminService {
@@ -26,6 +30,41 @@ public class AdminService {
     public AdminService(JourneyRepository journeyRepository, SystemParameterRepository systemParameterRepository) {
         this.journeyRepository = journeyRepository;
         this.systemParameterRepository = systemParameterRepository;
+    }
+
+    @Cacheable(value = "adminStats", key = "'dashboard-summary'")
+    public AdminDashboardDto getLegacyDashboardStats() {
+        List<Journey> journeys = journeyRepository.findAll();
+
+        double revenue = journeys.stream()
+                .filter(j -> j.getStatus() == JourneyStatus.COMPLETED)
+                .mapToDouble(j -> j.getTotalPrice() != null ? j.getTotalPrice() : 0.0)
+                .sum();
+
+        Map<String, Long> statusMap = journeys.stream()
+                .collect(Collectors.groupingBy(
+                        j -> j.getRequestStatus() != null ? j.getRequestStatus().name() : "START",
+                        Collectors.counting()
+                ));
+
+        return AdminDashboardDto.builder()
+                .totalBookings(journeys.size())
+                .totalRevenue(revenue)
+                .statusCounts(statusMap)
+                .build();
+    }
+
+    public List<Map<String, String>> getTouristContacts() {
+        return journeyRepository.findAll().stream()
+                .filter(j -> j.getUserEmail() != null)
+                .map(j -> {
+                    Map<String, String> contact = new HashMap<>();
+                    contact.put("email", j.getUserEmail());
+                    contact.put("whatsapp", j.getUserWhatsapp());
+                    return contact;
+                })
+                .distinct()
+                .toList();
     }
 
     public DashboardStatsResponse getDashboardStats() {
@@ -231,7 +270,7 @@ public class AdminService {
         params.setTechnicalMode(request.getTechnicalMode());
         params.setDebugMode(request.getDebugMode());
         params.setDataRetentionDays(request.getDataRetentionDays());
-        
+
         systemParameterRepository.save(params);
     }
 

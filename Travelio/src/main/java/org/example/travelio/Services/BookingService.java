@@ -159,15 +159,27 @@ public class BookingService {
             for (Map<String, Object> day : days) {
                 Object cityRaw = day.get("city");
                 if (cityRaw != null) {
-                    String city = cityRaw.toString().split("/")[0].trim();
-                    if (!city.isEmpty()) {
-                        cities.add(city);
+                    String rawCity = cityRaw.toString().split("/")[0].trim();
+
+                    String cleanedCity = cleanLocationName(rawCity);
+
+                    if (!cleanedCity.isEmpty()) {
+                        cities.add(cleanedCity);
                     }
                 }
             }
         } catch (Exception ignored) {
         }
         return cities;
+    }
+
+    private String cleanLocationName(String location) {
+        if (location == null) return "";
+
+        return location
+                .replaceAll("(?i)\\b(National Park|Museum|Museum Center|Reserve|Historical|Monument|Palace|Temple)\\b", "") // Bu sözləri sil (böyük/kiçik hərf fərqi olmadan)
+                .replaceAll("\\s{2,}", " ") // Artıq boşluqları təmizlə
+                .trim();
     }
 
     private List<HotelResponse> fetchFallbackHotelsFromDb(String city) {
@@ -248,5 +260,10 @@ public class BookingService {
             return new ArrayList<>(list);
         }
         return Collections.emptyList();
+    }
+
+    public List<HotelResponse> getHotelsForAdminView(String city) {
+        String safeCity = (city == null || city.isBlank()) ? "Baku" : city;
+        return fetchFallbackHotelsFromDb(safeCity);
     }
 }

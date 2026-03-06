@@ -5,8 +5,10 @@ import org.example.travelio.Enums.BudgetType;
 import org.example.travelio.Enums.JourneyStatus;
 import org.example.travelio.Enums.TravelStyle;
 import org.example.travelio.Enums.TravelWith;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
@@ -14,7 +16,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
-public interface JourneyRepository extends CrudRepository<Journey, Long> {
+public interface JourneyRepository extends JpaRepository<Journey, Long> {
+    Page<Journey> findByStatus(JourneyStatus status, Pageable pageable);
+
     long countByStatus(JourneyStatus status);
 
     long countByBudgetType(BudgetType budgetType);
