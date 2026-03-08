@@ -10,6 +10,4 @@ import lombok.NoArgsConstructor;
 public class HourlyActivityResponse {
     private int hour;
     private  long activeUsers;
-
-
 }

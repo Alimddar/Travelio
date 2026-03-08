@@ -22,5 +22,4 @@ public class User {
 
     @Column(name = "onboarding_completed")
     private boolean onboardingCompleted;
-
 }

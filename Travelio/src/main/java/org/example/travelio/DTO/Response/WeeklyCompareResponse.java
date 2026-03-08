@@ -12,5 +12,4 @@ public class WeeklyCompareResponse {
     private long prevMonthUsers;
     private long currentMonthUsers;
 
-
 }

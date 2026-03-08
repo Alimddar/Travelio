@@ -37,4 +37,5 @@ public class UserAdmin {
             inverseJoinColumns = {@JoinColumn(name = "role_id", referencedColumnName = "id")}
     )
     @JsonIgnoreProperties("users")
-    private Set<Role> roles = new HashSet<>();}
+    private Set<Role> roles = new HashSet<>();
+}
