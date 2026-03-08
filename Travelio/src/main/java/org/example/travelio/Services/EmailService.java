@@ -1,63 +1,66 @@
 package org.example.travelio.Services;
 
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
+import com.resend.Resend;
+import com.resend.core.exception.ResendException;
+import com.resend.services.emails.model.Attachment;
+import com.resend.services.emails.model.CreateEmailOptions;
+import com.resend.services.emails.model.CreateEmailResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.MailException;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
-import org.springframework.core.io.ByteArrayResource;
+
+import java.util.Base64;
+import java.util.List;
 
 @Service
 public class EmailService {
 
     private static final Logger log = LoggerFactory.getLogger(EmailService.class);
 
-    private final JavaMailSender mailSender;
+    private final Resend resend;
 
-    @Value("${spring.mail.username}")
-    private String fromEmail;
+    @Value("${resend.from.name}")
+    private String fromName;
 
-    public EmailService(JavaMailSender mailSender) {
-        this.mailSender = mailSender;
+    @Value("${resend.from.address}")
+    private String fromAddress;
+
+    public EmailService(Resend resend) {
+        this.resend = resend;
     }
 
     public void sendEmailWithAttachment(String to, String subject, String body, byte[] pdfBytes, String fileName) {
-        if (fromEmail == null || fromEmail.isBlank()) {
-            log.error("MAIL_USERNAME is not configured — spring.mail.username resolved to blank");
-            throw new RuntimeException("Mail sender is not configured. Set MAIL_USERNAME environment variable.");
+        if (fromAddress == null || fromAddress.isBlank()) {
+            log.error("RESEND_FROM_ADDRESS is not configured");
+            throw new RuntimeException("Mail sender is not configured. Set RESEND_FROM_ADDRESS environment variable.");
         }
 
-        log.info("Sending email from={} to={} subject='{}'", fromEmail, to, subject);
-        MimeMessage message = mailSender.createMimeMessage();
+        String from = fromName != null && !fromName.isBlank()
+                ? fromName + " <" + fromAddress + ">"
+                : fromAddress;
+
+        log.info("Sending email via Resend from='{}' to={} subject='{}'", from, to, subject);
 
         try {
-            MimeMessageHelper helper = new MimeMessageHelper(message, true);
-            helper.setFrom(fromEmail);
-            helper.setTo(to);
-            helper.setSubject(subject);
-            helper.setText(body);
+            Attachment attachment = Attachment.builder()
+                    .fileName(fileName)
+                    .content(Base64.getEncoder().encodeToString(pdfBytes))
+                    .build();
 
-            ByteArrayResource pdfResource = new ByteArrayResource(pdfBytes);
-            helper.addAttachment(fileName, pdfResource);
+            CreateEmailOptions params = CreateEmailOptions.builder()
+                    .from(from)
+                    .to(to)
+                    .subject(subject)
+                    .text(body)
+                    .attachments(List.of(attachment))
+                    .build();
 
-            mailSender.send(message);
-            log.info("Email sent successfully to {}", to);
-        } catch (MessagingException | MailException e) {
-            String causeMessage = extractRootCauseMessage(e);
-            log.error("SMTP email failed: {} | Root cause: {}", e.getMessage(), causeMessage, e);
-            throw new RuntimeException("Failed to send email via SMTP: " + causeMessage, e);
+            CreateEmailResponse response = resend.emails().send(params);
+            log.info("Email sent successfully to {} — Resend id={}", to, response.getId());
+        } catch (Exception e) {
+            log.error("Resend API failed: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to send email via Resend: " + e.getMessage(), e);
         }
-    }
-
-    private String extractRootCauseMessage(Throwable throwable) {
-        Throwable current = throwable;
-        while (current.getCause() != null) {
-            current = current.getCause();
-        }
-        return current.getMessage() != null ? current.getMessage() : current.getClass().getSimpleName();
     }
 }
