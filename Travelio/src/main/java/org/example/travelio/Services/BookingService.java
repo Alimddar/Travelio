@@ -132,14 +132,14 @@ public class BookingService {
         List<Object> photos = asList(property.get("photoUrls"));
         String imageUrl = photos.isEmpty() ? null : String.valueOf(photos.get(0));
 
-        String hotelId = String.valueOf(property.getOrDefault("id", ""));
-//        String hotelUrl = "https://www.booking.com/hotel/az/id-" + hotelId + ".html";
-        String realUrl = (String) property.get("url");
-        String hotelUrl = (realUrl != null) ? realUrl + "?aid=" + aid : "https://www.booking.com/hotel/az/" + name.toLowerCase().replace(" ", "-") + ".html?aid=" + aid;
 
-        if (aid != null && !aid.isBlank()) {
-            hotelUrl = hotelUrl + "?aid=" + aid;
-        }
+        String realUrl = (String) property.get("url");
+        String baseUrl = (realUrl != null && !realUrl.isBlank())
+                ? realUrl
+                : "https://www.booking.com/hotel/az/" + name.toLowerCase().replace(" ", "-") + ".html";
+
+
+        String finalHotelUrl = addAid(baseUrl);
 
         return HotelResponse.builder()
                 .name(name)
@@ -147,7 +147,7 @@ public class BookingService {
                 .reviewCount(reviews)
                 .price(priceValue)
                 .currency(currency)
-                .hotelUrl(hotelUrl)
+                .hotelUrl(finalHotelUrl)
                 .imageUrl(imageUrl)
                 .build();
     }
@@ -207,11 +207,19 @@ public class BookingService {
             return hotelUrl;
         }
 
-        if (aid == null || aid.isBlank()) {
+
+        if (aid == null || aid.isBlank() || "null".equalsIgnoreCase(aid.trim())) {
             return hotelUrl;
         }
 
-        return hotelUrl.contains("?") ? hotelUrl + "&aid=" + aid : hotelUrl + "?aid=" + aid;
+
+        if (hotelUrl.contains("aid=")) {
+            return hotelUrl;
+        }
+
+
+        String separator = hotelUrl.contains("?") ? "&" : "?";
+        return hotelUrl + separator + "aid=" + aid.trim();
     }
 
     private Double parseSafeDouble(Object value) {
